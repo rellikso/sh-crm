@@ -1,0 +1,54 @@
+# 1. Redirect from HTTP to HTTPS (preserving API methods via 308)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${NGINX_HOST} www.${NGINX_HOST};
+    return 308 https://${NGINX_HOST}$request_uri;
+}
+
+# 2. Redirect from HTTPS www. to HTTPS without www
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name www.${NGINX_HOST};
+
+    ssl_certificate /etc/nginx/certs/${NGINX_CERT_FILE};
+    ssl_certificate_key /etc/nginx/certs/${NGINX_KEY_FILE};
+
+    return 308 https://${NGINX_HOST}$request_uri;
+}
+
+# 3. Primary HTTPS server
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ${NGINX_HOST};
+
+    root /var/www/public;
+    index index.php index.html;
+
+    ssl_certificate /etc/nginx/certs/${NGINX_CERT_FILE};
+    ssl_certificate_key /etc/nginx/certs/${NGINX_KEY_FILE};
+
+    # SSL optimization
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}

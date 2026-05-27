@@ -1,58 +1,68 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Application & Ticket Management System (Mini-CRM)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A production-ready Mini-CRM system designed to collect, validate, and manage client tickets.
 
-## About Laravel
+**Tech Stack:** PHP 8.4/8.5, Laravel 13, MariaDB 11.4, Nginx.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 1. Quick Start Guide
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Follow these steps to spin up and initialize the entire environment locally:
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
+### Step 1: Clone the Repository
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <repository-url>
+cd sh-crm
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Step 2: Initialize Environment Variables
+Copy the upstream configuration template to create your local `.env` instance:
+```bash
+cp .env.example .env
+```
+*(Optional)* Open `.env` and alter the `APP_DOMAIN` variable if you prefer a custom local hostname.
 
-## Contributing
+### Step 3: Generate Local SSL Certificates
+Run the following directive to provision a 10-year self-signed certificate matching your configured domain. If you altered `APP_DOMAIN` in the previous step, replace `sh-crm.local` below with your custom value:
+```bash
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+  -keyout docker/nginx/certs/auth.key \
+  -out docker/nginx/certs/auth.crt \
+  -subj "/C=US/ST=State/L=City/O=Dev/OU=Local/CN=sh-crm.local"
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Step 4: Boot up the Containers
+Build the localized image manifests and start the environment services in the background:
+```bash
+docker compose up -d --build
+```
+*Note: On initial boot, the application container automatically manages `composer install`, evaluates frontend assets (`npm install` & `npm run build`), and runs outstanding database migrations.*
 
-## Code of Conduct
+### Step 5: Configure Local DNS Routing
+To prevent port collisions with any local web servers running on your host machine, the Docker network binds exclusively to the alternative loopback IP `127.0.0.2`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Map your virtual local domain to this specific IP. Append the following entry to your host system's hosts file (typically `/etc/hosts` on Linux/macOS):
+```text
+127.0.0.2 sh-crm.local
+```
 
-## Security Vulnerabilities
+Once all container indicators resolve to a `healthy` status via `docker compose ps`, access the interface securely at: **`https://sh-crm.local`**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 2. Test & Mock Data
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+*(To be completed: Admin credentials, test user accounts, pre-seeded sample tickets, and mock customer data descriptions).*
+
+---
+
+## 3. API Documentation & Integration Examples
+
+*(To be completed: Detailed API endpoints specification, payload examples for ticket submission, headers, response schemas, and validation rule behavior documentation).*
+
+---
+
+## 4. Widget Integration (Iframe Setup)
+
+*(To be completed: HTML copy-paste code snippets for cross-origin embedding, CORS policy parameters, and security headers configuration for integration on third-party sites).*

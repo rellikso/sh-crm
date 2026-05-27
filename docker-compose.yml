@@ -1,0 +1,71 @@
+services:
+  # PHP-FPM application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      APP_URL: https://${APP_DOMAIN}
+    image: mini-sh-app
+    container_name: sh-app
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - .:/var/www
+    networks:
+      - sh-network
+    depends_on:
+      sh-db:
+        condition: service_healthy
+
+  # Nginx web server service
+  web:
+    image: nginx:latest
+    container_name: sh-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.2:8080:80"
+      - "127.0.0.2:443:443"
+    environment:
+      NGINX_HOST: ${APP_DOMAIN}
+      NGINX_CERT_FILE: auth.crt
+      NGINX_KEY_FILE: auth.key
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/templates:/etc/nginx/templates:ro
+      - ./docker/nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - sh-network
+    depends_on:
+      - app
+
+  # Database service
+  sh-db:
+    image: mariadb:11.4
+    container_name: sh-db
+    restart: unless-stopped
+    ports:
+      - "33060:3306"
+    environment:
+      MARIADB_DATABASE: sh_crm
+      MARIADB_USER: sh_developer
+      MARIADB_PASSWORD: sh_password
+      MARIADB_ROOT_PASSWORD: root_password
+    volumes:
+      - sh-db-data:/var/lib/mysql
+    networks:
+      - sh-network
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+networks:
+  sh-network:
+    driver: bridge
+
+volumes:
+  sh-db-data:
+    driver: local
