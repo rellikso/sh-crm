@@ -82,14 +82,92 @@ The `config/localization.php` manifest implements typographical formatting mappi
 
 ---
 
-## 5. API Documentation & Schema Contract
+## 5. API Documentation, Schema Contract & Versioning
 
 ### Automated OpenAPI Spec Generation via L5-Swagger
 **Problem:** Frontend integration layers (specifically external iframe widgets) require strict, immutable API request/response contracts. Manual tracking of API documentation via external tools (like Postman or custom wikis) inevitably drifts from the actual source code over time, causing production runtime failures.
 
-**Solution:** The system integrates **`darkaonline/l5-swagger`** to enforce **Documentation-as-Code**.
+**Solution:** The system integrates **`darkaonline/l5-swagger`** to enforce **Documentation-as-Code** combined with an isolated multi-documentation architecture.
 * **Why:** By using native **PHP 8.4+ Attributes** directly on Controllers, Request DTOs, and API Resources, the code becomes the single source of truth. The specification is auto-generated via standard CLI directives, completely eliminating documentation drift.
-* **Security & Environments:** In local and staging environments, the interactive Swagger UI dashboard is fully accessible for debugging. For production environments, the engine can serve raw JSON payloads to authorized consumers while restricting public access to the UI layout via middleware guards.
+* **Security & Environments:** In local and staging environments, the interactive Swagger UI dashboard is fully accessible for debugging. For production environments, the engine serves raw JSON payloads to authorized consumers while restricting public access to the UI layout via middleware guards.
+
+### Isolated Multi-Documentation Architecture (v1 / v2 Coexistence)
+To maintain strict backward compatibility while evolving the system, the project implements decoupled documentation environments using explicit configurations. This prevents configuration bleeding and overlapping routing issues across sequential API versions.
+
+#### 1. Configuration Matrix (`config/l5-swagger.php`)
+The `documentations` block is split into independent scopes, assigning dedicated scanner roots and UI routes for each respective API generation:
+
+```php
+return [
+    'default' => 'v1',
+    'documentations' => [
+        'v1' => [
+            'api' => [
+                'title' => 'Tech SMS API - Version 1.0',
+            ],
+            'routes' => [
+                'api' => 'api/documentation/v1',
+                'docs' => 'docs/v1',
+                'oauth2-callback' => 'api/oauth2-callback/v1',
+            ],
+            'paths' => [
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'docs_json' => 'api-docs-v1.json',
+                'docs_yaml' => 'api-docs-v1.yaml',
+                'annotations' => [
+                    base_path('app/Http/Controllers/Api/V1'),
+                ],
+            ],
+        ],
+
+        'v2' => [
+            'api' => [
+                'title' => 'Tech SMS API - Version 2.0 (NextGen)',
+            ],
+            'routes' => [
+                'api' => 'api/documentation/v2',
+                'docs' => 'docs/v2',
+                'oauth2-callback' => 'api/oauth2-callback/v2',
+            ],
+            'paths' => [
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'docs_json' => 'api-docs-v2.json',
+                'docs_yaml' => 'api-docs-v2.yaml',
+                'annotations' => [
+                    base_path('app/Http/Controllers/Api/V2'),
+                ],
+            ],
+        ],
+    ],
+];
+```
+
+#### 2. Directory & Namespace Alignment
+Controllers are strictly separated into versioned namespaces to align with the scanner configurations:
+
+```text
+app/Http/Controllers/Api/
+├── V1/
+│   ├── TicketController.php       -> #[OA\Get(path: "/tickets")] (Prefix: /api/v1 via Server block)
+│   └── BaseV1OpenApi.php          -> Holds #[OA\Server(url: "https://.../api/v1")]
+└── V2/
+    ├── TicketController.php       -> #[OA\Get(path: "/tickets")] (Prefix: /api/v2 via Server block)
+    └── BaseV2OpenApi.php          -> Holds #[OA\Server(url: "https://.../api/v2")]
+```
+
+* **Relative Paths:** Inside version-specific controllers, the `path` attribute stays relative (`path: "/tickets"`). The base route prefix context (`/api/v1` or `/api/v2`) is injected cleanly from the corresponding `BaseOpenApi` server configuration file to avoid double-prefixing URLs within Swagger UI.
+* **Operation ID Uniqueness:** Every `operationId` attribute must be suffixed with its version tag (e.g., `getTicketStatisticsV1` vs. `getTicketStatisticsV2`) to guarantee collision-free JSON schema compilation.
+
+#### 3. Specification Compilation
+To re-compile OpenAPI specifications after code modifications, target either specific definitions or execute a global run:
+```bash
+# Generate all defined documentation blocks simultaneously
+php artisan l5-swagger:generate --all
+
+# Generate a specific isolated target version
+php artisan l5-swagger:generate v1
+php artisan l5-swagger:generate v2
+```
 
 ---
 
@@ -101,6 +179,8 @@ The `config/localization.php` manifest implements typographical formatting mappi
 **Solution:** The system enforces a strict composite database constraint.
 * **Database Level:** The `customers` table uses a unique composite index: `$table->unique(['email', 'phone']);`. This acts as a hard database guard against race conditions and duplicates.
 * **Application Level:** Instead of standard insert directives, the ingestion layer utilizes Eloquent's `updateOrCreate()`. This strategy dynamically self-heals customer metadata (e.g., updating their name if it changed) while linking the incoming ticket to a single, unified `customer_id`.
+
+---
 
 ## 7. Role-Based Access Control & Panel Security (Filament v5)
 

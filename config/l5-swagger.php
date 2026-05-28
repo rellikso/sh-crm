@@ -1,54 +1,49 @@
 <?php
 
 return [
-    'default' => 'default',
+    'default' => 'v1',
     'documentations' => [
-        'default' => [
+        'v1' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'SH CRM API - Version 1.0',
             ],
-
             'routes' => [
-                /*
-                 * Route for accessing api documentation interface
-                 */
-                'api' => 'api/documentation',
+                'api' => 'api/documentation/v1',
+                'docs' => 'docs/v1',
+                'oauth2-callback' => 'api/oauth2-callback/v1',
             ],
             'paths' => [
-                /*
-                 * Edit to include full URL in ui for assets
-                 */
                 'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
-
-                /*
-                * Edit to set path where swagger ui assets should be stored
-                */
-                'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
-
-                /*
-                 * File name of the generated json documentation file
-                 */
-                'docs_json' => 'api-docs.json',
-
-                /*
-                 * File name of the generated YAML documentation file
-                 */
-                'docs_yaml' => 'api-docs.yaml',
-
-                /*
-                 * Set this to `json` or `yaml` to determine which documentation file to use in UI
-                 */
-                'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
-
-                /*
-                 * Absolute paths to directory containing the swagger annotations are stored.
-                 */
+                'docs_json' => 'api-docs-v1.json',
+                'docs_yaml' => 'api-docs-v1.yaml',
                 'annotations' => [
-                    base_path('app'),
+                    base_path('app/Http/Controllers/Api/V1'),
                 ],
             ],
         ],
+
+        /*
+         * 'v2' => [
+            'api' => [
+                'title' => 'SH CRM SMS API - Version 2.0 (NextGen)',
+            ],
+            'routes' => [
+                'api' => 'api/documentation/v2',
+                'docs' => 'docs/v2',
+                'oauth2-callback' => 'api/oauth2-callback/v2',
+            ],
+            'paths' => [
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'docs_json' => 'api-docs-v2.json',
+                'docs_yaml' => 'api-docs-v2.yaml',
+                'annotations' => [
+                    base_path('app/Http/Controllers/Api/V2'),
+                ],
+            ],
+        ],
+        */
     ],
+
     'defaults' => [
         'routes' => [
             /*
@@ -121,14 +116,14 @@ return [
             ],
 
             /**
-             * analyser: defaults to \OpenApi\StaticAnalyser .
+             * analyser: defaults to \BaseV1OpenApi\StaticAnalyser .
              *
              * @see \OpenApi\scan
              */
             'analyser' => null,
 
             /**
-             * analysis: defaults to a new \OpenApi\Analysis .
+             * analysis: defaults to a new \BaseV1OpenApi\Analysis .
              *
              * @see \OpenApi\scan
              */
@@ -154,7 +149,7 @@ return [
             /*
              * Absolute path to directories that should be excluded from scanning
              * @note This option overwrites `paths.excludes`
-             * @see \OpenApi\scan
+             * @see \BaseV1OpenApi\scan
              */
             'exclude' => [],
 

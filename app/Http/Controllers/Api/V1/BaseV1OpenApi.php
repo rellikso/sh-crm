@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
 use OpenApi\Attributes as OA;
 
@@ -13,7 +13,7 @@ use OpenApi\Attributes as OA;
     url: "/api/v1",
     description: "Current application environment (Dynamic domain)"
 )]
-class OpenApi
+class BaseV1OpenApi
 {
     // Global API attributes container
 }

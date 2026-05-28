@@ -1,18 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\CreateTicketAction;
+use App\Actions\GetTicketStatisticsAction;
 use App\DTO\TicketData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SubmitTicketRequest;
-use Illuminate\Http\JsonResponse;
+use App\Http\Resources\TicketResource;
+use App\Http\Resources\TicketStatisticsResource;
 use OpenApi\Attributes as OA;
 
 class TicketController extends Controller
 {
     #[OA\Post(
-        path: "/api/v1/tickets",
+        path: "/tickets",
         summary: "Submit a new support ticket from external widget",
         description: "Creates or updates a customer node based on composite keys, logs an inbound ticket, and processes optional file attachments. Enforces a strict 24-hour rate limit per customer identity.",
         operationId: "submitTicket",
@@ -75,17 +77,40 @@ class TicketController extends Controller
             )
         ]
     )]
-    public function store(SubmitTicketRequest $request, CreateTicketAction $action): JsonResponse
+    public function store(SubmitTicketRequest $request, CreateTicketAction $action): TicketResource
     {
         // Hydrate data container and offload processing execution to the domain layer
         $ticket = $action->execute(TicketData::fromRequest($request));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Ticket has been successfully processed and recorded.',
-            'data' => [
-                'ticket_id' => $ticket->id,
-            ],
-        ], 201);
+        // Returns formatted payload wrapped via API JsonResource
+        return new TicketResource($ticket);
+    }
+
+    #[OA\Get(
+        path: "/tickets/statistics",
+        summary: "Get aggregated ticket statistics",
+        description: "Returns ticket counters split by periods (24 hours, week, month) and statuses using Eloquent scopes and Carbon.",
+        operationId: "getTicketStatistics",
+        tags: ["Tickets"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Aggregated statistics object",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "success", type: "boolean", example: true),
+                        new OA\Property(property: "metrics", type: "object", properties: [
+                            new OA\Property(property: "day", type: "object"),
+                            new OA\Property(property: "week", type: "object"),
+                            new OA\Property(property: "month", type: "object")
+                        ])
+                    ]
+                )
+            )
+        ]
+    )]
+    public function statistics(GetTicketStatisticsAction $action): TicketStatisticsResource
+    {
+        return new TicketStatisticsResource($action->execute());
     }
 }

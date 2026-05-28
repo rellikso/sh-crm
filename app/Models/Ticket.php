@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TicketStatus;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,6 +40,22 @@ class Ticket extends Model implements HasMedia
                 $ticket->answered_at = now();
             }
         });
+    }
+
+    /**
+     * Scope to filter records created after a specific point in time.
+     */
+    public function scopeCreatedAfter($query, Carbon $date)
+    {
+        return $query->where('created_at', '>=', $date);
+    }
+
+    /**
+     * Scope to quickly filter by status.
+     */
+    public function scopeWithStatus($query, TicketStatus $status)
+    {
+        return $query->where('status', $status->value);
     }
 
     public function customer(): BelongsTo

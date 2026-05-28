@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  title: 'SH CRM API Contract'
+  description: 'API specification for Ticket Management and external Widget integration components.'
+  version: 1.0.0
+servers:
+  -
+    url: /api/v1
+    description: 'Current application environment (Dynamic domain)'
+paths:
+  /tickets:
+    post:
+      tags:
+        - Tickets
+      summary: 'Submit a new support ticket from external widget'
+      description: 'Creates or updates a customer node based on composite keys, logs an inbound ticket, and processes optional file attachments. Enforces a strict 24-hour rate limit per customer identity.'
+      operationId: submitTicket
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - name
+                - email
+                - phone
+                - subject
+                - message
+              properties:
+                name:
+                  type: string
+                  example: 'John Doe'
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                  maxLength: 255
+                phone:
+                  type: string
+                  example: '+77012345678'
+                  maxLength: 50
+                subject:
+                  type: string
+                  example: 'Integration Error'
+                  maxLength: 255
+                message:
+                  type: string
+                  example: 'The iframe widget fails to load over custom SSL domains.'
+                  maxLength: 5000
+                'attachments[]':
+                  description: 'Optional files to attach to the ticket (Max 10MB per file)'
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              type: object
+      responses:
+        201:
+          description: 'Ticket successfully processed and recorded'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Ticket has been successfully processed and recorded.'
+                  data:
+                    properties:
+                      ticket_id:
+                        type: integer
+                        example: 104
+                    type: object
+                type: object
+        422:
+          description: 'Validation failure, invalid file format, or 24-hour spam rate limit exceeded'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'The given data was invalid.'
+                  errors:
+                    properties:
+                      attachments.0:
+                        type: array
+                        items:
+                          type: string
+                          example: 'The attachments.0 field must be a file of type: jpg, jpeg, png, pdf.'
+                    type: object
+                type: object
+  /tickets/statistics:
+    get:
+      tags:
+        - Tickets
+      summary: 'Get aggregated ticket statistics'
+      description: 'Returns ticket counters split by periods (24 hours, week, month) and statuses using Eloquent scopes and Carbon.'
+      operationId: getTicketStatistics
+      responses:
+        200:
+          description: 'Aggregated statistics object'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  metrics:
+                    properties:
+                      day:
+                        type: object
+                      week:
+                        type: object
+                      month:
+                        type: object
+                    type: object
+                type: object
+tags:
+  -
+    name: Tickets
+    description: Tickets

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\V1\TicketController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Route;
 | API Routes - Version 1
 |--------------------------------------------------------------------------
 */
-Route::prefix('v1')->name('api.v1.')->group(function () {
-
-    // Public endpoint for cross-origin widget ticket submissions
-    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
-
+Route::prefix('v1')->group(function () {
+    Route::prefix('tickets')->group(function () {
+        Route::post('/', [TicketController::class, 'store']);
+        Route::get('/statistics', [TicketController::class, 'statistics']);
+    });
 });
