@@ -15,9 +15,6 @@ return new class extends Migration
             $table->text('text');
             $table->string('status')->default('new');
 
-            $table->string('locale', 10)->default('ru');
-            $table->json('payload')->nullable();
-
             $table->timestamp('answered_at')->nullable();
             $table->timestamps();
 
