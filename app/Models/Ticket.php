@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TicketStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,9 +24,21 @@ class Ticket extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'payload' => 'array',
+            'status' => TicketStatus::class,
             'answered_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Automate lifecycle timestamps based on status transitions.
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (Ticket $ticket) {
+            if ($ticket->isDirty('status') && $ticket->status === TicketStatus::Answered) {
+                $ticket->answered_at = now();
+            }
+        });
     }
 
     public function customer(): BelongsTo

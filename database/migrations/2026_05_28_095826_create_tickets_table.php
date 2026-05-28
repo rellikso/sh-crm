@@ -13,12 +13,9 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->string('subject');
             $table->text('text');
-            $table->string('status')->default('new');
-
-            $table->timestamp('answered_at')->nullable();
+            $table->string('status')->default('new'); // Backed by TicketStatus Enum
+            $table->timestamp('answered_at')->nullable(); // Pure automated precise log
             $table->timestamps();
-
-            $table->index(['status', 'created_at']);
         });
     }
 
