@@ -54,7 +54,18 @@ Once all container indicators resolve to a `healthy` status via `docker compose 
 
 ## 2. Test & Mock Data
 
-*(To be completed: Admin credentials, test user accounts, pre-seeded sample tickets, and mock customer data descriptions).*
+### Database Ingestion & Seeding
+To migrate the database schema and populate required application roles alongside a default administrator account, run the following commands inside the container:
+
+```bash
+docker compose exec sh-web php artisan migrate
+docker compose exec sh-web php artisan db:seed
+```
+
+### Initial Administrative Credentials
+Once seeded, the Filament v5 administration panel can be accessed at `https://<env('APP_DOMAIN')>/admin` using the following development credentials:
+* **Username:** `admin@crm.local`
+* **Password:** `secret123`
 
 ---
 

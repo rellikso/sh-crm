@@ -5,9 +5,8 @@ set -e
 echo "Executing database migrations..."
 php artisan migrate --force
 
-# Uncomment this when seeders/factories are ready
-# echo "Executing database seeding..."
-# php artisan db:seed --force
+echo "Executing database seeding..."
+php artisan db:seed
 
 # Check if package.json exists
 if [ -f "package.json" ]; then

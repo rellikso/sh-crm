@@ -90,3 +90,23 @@ The `config/localization.php` manifest implements typographical formatting mappi
 **Solution:** The system integrates **`darkaonline/l5-swagger`** to enforce **Documentation-as-Code**.
 * **Why:** By using native **PHP 8.4+ Attributes** directly on Controllers, Request DTOs, and API Resources, the code becomes the single source of truth. The specification is auto-generated via standard CLI directives, completely eliminating documentation drift.
 * **Security & Environments:** In local and staging environments, the interactive Swagger UI dashboard is fully accessible for debugging. For production environments, the engine can serve raw JSON payloads to authorized consumers while restricting public access to the UI layout via middleware guards.
+
+---
+
+## 6. Database Normalization & Customer Identity Guarantee
+
+### Preventative Deduplication via Composite Keys
+**Problem:** Inbound submissions from external iframe widgets often introduce data redundancy. Blindly creating a new customer record for every submitted ticket pollutes the database, breaks analytical integrity, and makes historic ticket mapping impossible.
+
+**Solution:** The system enforces a strict composite database constraint.
+* **Database Level:** The `customers` table uses a unique composite index: `$table->unique(['email', 'phone']);`. This acts as a hard database guard against race conditions and duplicates.
+* **Application Level:** Instead of standard insert directives, the ingestion layer utilizes Eloquent's `updateOrCreate()`. This strategy dynamically self-heals customer metadata (e.g., updating their name if it changed) while linking the incoming ticket to a single, unified `customer_id`.
+
+## 7. Role-Based Access Control & Panel Security (Filament v5)
+
+### Decoupled Authentication Guarding
+**Problem:** The core application must support multiple internal tiers (Admins who manage users/settings, and Managers who process client tickets) while explicitly preventing unauthorized authenticated application users from gaining entry to the backend system.
+
+**Solution:** Leveraged **Spatie Laravel-Permission** combined with the native **Filament v5 Panel Access Contract**.
+* **Role Ingestion:** Initial system states are strictly governed by a `RolesAndPermissionsSeeder`, establishing deterministic `admin` and `manager` nodes during deployment.
+* **Panel Protection:** The `User` model implements Filament's `FilamentUser` interface. The `canAccessPanel(Panel $panel)` hook explicitly validates the user's Spatie roles before allowing entry into the Livewire v4 reactive administration interface, bypassing resource exposure risks.
