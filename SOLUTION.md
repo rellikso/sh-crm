@@ -79,3 +79,14 @@ The system's core administrative backend is hardcoded to use Russian (`ru`) as t
 ### Smart Punctuation Injector (Kazakh Locale Extension)
 The `config/localization.php` manifest implements typographical formatting mappings (`smart_punctuation`) mapping `Locale::Kazakh` explicitly alongside default East European arrays.
 * **Why:** Ensures that dynamic validation reports, layout arrays, and administrative interfaces render culturally accurate quotation marks («...») natively rather than generic double quotes (`"..."`), guaranteeing polished frontend output for local end-users.
+
+---
+
+## 5. API Documentation & Schema Contract
+
+### Automated OpenAPI Spec Generation via L5-Swagger
+**Problem:** Frontend integration layers (specifically external iframe widgets) require strict, immutable API request/response contracts. Manual tracking of API documentation via external tools (like Postman or custom wikis) inevitably drifts from the actual source code over time, causing production runtime failures.
+
+**Solution:** The system integrates **`darkaonline/l5-swagger`** to enforce **Documentation-as-Code**.
+* **Why:** By using native **PHP 8.4+ Attributes** directly on Controllers, Request DTOs, and API Resources, the code becomes the single source of truth. The specification is auto-generated via standard CLI directives, completely eliminating documentation drift.
+* **Security & Environments:** In local and staging environments, the interactive Swagger UI dashboard is fully accessible for debugging. For production environments, the engine can serve raw JSON payloads to authorized consumers while restricting public access to the UI layout via middleware guards.

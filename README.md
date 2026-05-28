@@ -60,7 +60,17 @@ Once all container indicators resolve to a `healthy` status via `docker compose 
 
 ## 3. API Documentation & Integration Examples
 
-*(To be completed: Detailed API endpoints specification, payload examples for ticket submission, headers, response schemas, and validation rule behavior documentation).*
+The application includes an interactive Swagger UI dashboard containing the OpenAPI specification for all client-facing endpoints (used by external iframe widgets and internal integrations).
+
+### Accessing the Dashboard Locally
+Once the containers are healthy, the interactive documentation is available directly at:
+* **Dashboard URL:** `https://<env('APP_DOMAIN')>/api/documentation`
+
+### Regenerating Specs After Code Changes
+When you add new endpoints or update API attributes in Controllers/FormRequests, recompile the static JSON schema contract inside the application container:
+```bash
+docker compose exec sh-web php artisan l5-swagger:generate
+```
 
 ---
 
