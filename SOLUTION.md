@@ -190,3 +190,24 @@ php artisan l5-swagger:generate v2
 **Solution:** Leveraged **Spatie Laravel-Permission** combined with the native **Filament v5 Panel Access Contract**.
 * **Role Ingestion:** Initial system states are strictly governed by a `RolesAndPermissionsSeeder`, establishing deterministic `admin` and `manager` nodes during deployment.
 * **Panel Protection:** The `User` model implements Filament's `FilamentUser` interface. The `canAccessPanel(Panel $panel)` hook explicitly validates the user's Spatie roles before allowing entry into the Livewire v4 reactive administration interface, bypassing resource exposure risks.
+
+---
+
+## 8. Widget Architecture & Real-Time Data Synchronization
+
+### Decoupled Asset Management (Vite & Tailwind v4)
+**Problem:** Storing custom styles and raw JavaScript directly inside the external iframe template violates the separation of concerns, lacks minification, and bypasses cache-busting optimization.
+**Solution:** The widget completely repurposes the default application entry points (`resources/css/app.css` and `resources/js/app.js`). Styling is driven entirely by **Tailwind v4**, utilizing explicit scanning directives (`@source '../views/widget/**/*.blade.php';`) to compile only the utility classes used by the iframe layout. These assets are compiled via Vite, ensuring the external widget remains ultra-lightweight and completely isolated from the heavy Filament administration bundle. The dynamic `API_BASE` path is cleanly passed to the compiled JavaScript execution context via an HTML `<meta name="api-base-url">` tag.
+
+### Frontend Synchronization Strategy
+**Problem:** When an external user submits a new ticket via the iframe widget, the displayed statistics ("New Tickets Last 24h") must reflect the change. Relying on optimistic UI updates (e.g., hardcoding `+1` via JavaScript) leads to data desynchronization if the widget has been open for an extended period, completely ignoring other tickets created system-wide during that timeframe.
+
+**Evaluated Options:**
+1. **WebSockets / Server-Sent Events (SSE):** Provides true real-time syncing. *Rejected:* Extreme overkill for a lightweight iframe. Adds massive infrastructure cost and persistent connection overhead for thousands of potential partner embeddings.
+2. **Short Polling:** Pinging the API every 30 seconds to fetch fresh stats. *Rejected:* Causes unnecessary backend load and database strain from idle pages.
+3. **Optimistic UI (+1 increment):** Blindly incrementing numbers on the client side upon successful form submission. *Rejected:* Creates false data states, hiding concurrent system activity from the user.
+
+**Chosen Solution: Re-fetch on Action (Event-Driven Polling)**
+The system implements a compromise architecture. The JavaScript client fetches statistics automatically *only* upon the initial DOM load, and specifically triggers a forced background re-fetch (`GET /api/v1/tickets/statistics`) immediately following a successful `201 Created` form submission.
+* **Why:** This ensures absolute data consistency right when the user's attention is focused on the interface, without wasting server resources on WebSockets or idle polling.
+* 
