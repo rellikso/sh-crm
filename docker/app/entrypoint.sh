@@ -1,9 +1,13 @@
 #!/bin/sh
 set -e
 
+# Create storage link
+echo "Creating storage link..."
+php artisan storage:link
+
 # Run Laravel migrations
 echo "Executing database migrations..."
-php artisan migrate --force
+php artisan migrate
 
 echo "Executing database seeding..."
 php artisan db:seed
