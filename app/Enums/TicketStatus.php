@@ -8,15 +8,15 @@ use Filament\Support\Contracts\HasLabel;
 enum TicketStatus: string implements HasLabel, HasColor
 {
     case New = 'new';
-    case Answered = 'answered';
-    case Closed = 'closed';
+    case Processing = 'processing';
+    case Completed = 'completed';
 
     public function getLabel(): ?string
     {
         return match ($this) {
             self::New => 'New',
-            self::Answered => 'Answered',
-            self::Closed => 'Closed',
+            self::Processing => 'Processing',
+            self::Completed => 'Completed',
         };
     }
 
@@ -24,8 +24,8 @@ enum TicketStatus: string implements HasLabel, HasColor
     {
         return match ($this) {
             self::New => 'danger',     // Red badge
-            self::Answered => 'success', // Green badge
-            self::Closed => 'gray',     // Gray badge
+            self::Processing => 'success', // Green badge
+            self::Completed => 'gray',     // Gray badge
         };
     }
 }

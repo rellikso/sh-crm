@@ -30,8 +30,8 @@ class GetTicketStatisticsQuery
         return [
             'total_tickets' => (clone $baseQuery)->count(),
             'new' => (clone $baseQuery)->withStatus(TicketStatus::New)->count(),
-            'answered' => (clone $baseQuery)->withStatus(TicketStatus::Answered)->count(),
-            'closed' => (clone $baseQuery)->withStatus(TicketStatus::Closed)->count(),
+            'processing' => (clone $baseQuery)->withStatus(TicketStatus::Processing)->count(),
+            'completed' => (clone $baseQuery)->withStatus(TicketStatus::Completed)->count(),
         ];
     }
 }

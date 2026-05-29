@@ -36,7 +36,7 @@ class Ticket extends Model implements HasMedia
     protected static function booted(): void
     {
         static::updating(function (Ticket $ticket) {
-            if ($ticket->isDirty('status') && $ticket->status === TicketStatus::Answered) {
+            if ($ticket->isDirty('status') && $ticket->status === TicketStatus::Processing) {
                 $ticket->answered_at = now();
             }
         });

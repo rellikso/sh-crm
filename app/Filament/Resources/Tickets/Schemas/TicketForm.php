@@ -24,7 +24,7 @@ class TicketForm
                 Placeholder::make('answered_at')
                     ->label('Automated Response Time')
                     ->content(fn ($record) => $record?->answered_at ? $record->answered_at->format('Y-m-d H:i:s') : '-')
-                    ->visible(fn ($record) => $record?->status === TicketStatus::Answered),
+                    ->visible(fn ($record) => $record?->answered_at !== null),
 
                 Placeholder::make('customer_name')
                     ->label('Customer Name')
