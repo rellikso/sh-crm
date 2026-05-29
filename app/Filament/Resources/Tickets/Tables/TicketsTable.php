@@ -14,28 +14,31 @@ class TicketsTable
         return $table
             ->columns([
                 TextColumn::make('id')
+                    ->label(__('ticketResource.fields.id'))
                     ->sortable(),
 
                 TextColumn::make('status')
+                    ->label(__('ticketResource.fields.status'))
                     ->badge(),
 
                 TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label(__('ticketResource.fields.customer'))
                     ->searchable(),
 
                 TextColumn::make('subject')
+                    ->label(__('ticketResource.fields.subject'))
                     ->searchable()
                     ->limit(40),
 
                 TextColumn::make('created_at')
-                    ->label('Submitted')
+                    ->label(__('ticketResource.fields.submitted'))
                     ->dateTime()
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
                 ViewAction::make(),
-                EditAction::make(), // This adds the edit link/icon back to the row actions
+                EditAction::make(),
             ]);
     }
 }

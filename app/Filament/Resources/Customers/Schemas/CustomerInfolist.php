@@ -11,14 +11,22 @@ class CustomerInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('name'),
-                TextEntry::make('phone'),
+                TextEntry::make('name')
+                    ->label(__('customerResource.fields.name')),
+
+                TextEntry::make('phone')
+                    ->label(__('customerResource.fields.phone')),
+
                 TextEntry::make('email')
-                    ->label('Email address'),
+                    ->label(__('customerResource.fields.email')),
+
                 TextEntry::make('created_at')
+                    ->label(__('customerResource.fields.created_at'))
                     ->dateTime()
                     ->placeholder('-'),
+
                 TextEntry::make('updated_at')
+                    ->label(__('customerResource.fields.updated_at'))
                     ->dateTime()
                     ->placeholder('-'),
             ]);

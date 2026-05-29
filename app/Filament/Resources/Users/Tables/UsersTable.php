@@ -16,17 +16,21 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('id')
+                    ->label(__('userResource.fields.id'))
                     ->sortable(),
 
                 TextColumn::make('name')
+                    ->label(__('userResource.fields.name'))
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('email')
+                    ->label(__('userResource.fields.email'))
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('roles.name')
+                    ->label(__('userResource.fields.roles'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',

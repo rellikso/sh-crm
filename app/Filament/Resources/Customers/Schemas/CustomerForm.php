@@ -12,23 +12,26 @@ class CustomerForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label(__('customerResource.fields.name'))
                     ->required()
                     ->string()
                     ->minLength(2)
                     ->maxLength(100),
 
                 TextInput::make('email')
+                    ->label(__('customerResource.fields.email'))
                     ->required()
                     ->email()
                     ->maxLength(255)
                     ->unique(table: 'customers', ignoreRecord: true),
 
                 TextInput::make('phone')
+                    ->label(__('customerResource.fields.phone'))
                     ->tel()
                     ->nullable()
-                    ->regex('/^\+?[1-9]\d{6,14}$/') // Strict E.164 API-like validation format
+                    ->regex('/^\+?[1-9]\d{6,14}$/')
                     ->validationMessages([
-                        'regex' => 'The phone number format is invalid. Use international format (e.g., +380000000000).',
+                        'regex' => __('customerResource.validation.phone_regex'),
                     ]),
             ])
             ->columns(1);

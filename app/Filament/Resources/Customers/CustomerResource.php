@@ -20,7 +20,20 @@ class CustomerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static string|null|\UnitEnum $navigationGroup = 'Support';
+    public static function getModelLabel(): string
+    {
+        return __('customerResource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('customerResource.plural_model_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('customerResource.navigation_group');
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -34,9 +47,7 @@ class CustomerResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array

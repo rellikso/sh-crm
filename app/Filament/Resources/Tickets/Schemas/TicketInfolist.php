@@ -12,18 +12,30 @@ class TicketInfolist
         return $schema
             ->components([
                 TextEntry::make('customer.name')
-                    ->label('Customer'),
-                TextEntry::make('subject'),
+                    ->label(__('ticketResource.fields.customer')),
+
+                TextEntry::make('subject')
+                    ->label(__('ticketResource.fields.subject')),
+
                 TextEntry::make('text')
+                    ->label(__('ticketResource.fields.text'))
                     ->columnSpanFull(),
-                TextEntry::make('status'),
+
+                TextEntry::make('status')
+                    ->label(__('ticketResource.fields.status')),
+
                 TextEntry::make('answered_at')
+                    ->label(__('ticketResource.fields.answered_at'))
                     ->dateTime()
                     ->placeholder('-'),
+
                 TextEntry::make('created_at')
+                    ->label(__('ticketResource.fields.created_at'))
                     ->dateTime()
                     ->placeholder('-'),
+
                 TextEntry::make('updated_at')
+                    ->label(__('ticketResource.fields.updated_at'))
                     ->dateTime()
                     ->placeholder('-'),
             ]);

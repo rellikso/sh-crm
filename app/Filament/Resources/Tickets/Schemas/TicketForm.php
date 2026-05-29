@@ -14,35 +14,35 @@ class TicketForm
     {
         return $schema
             ->components([
-                // Clean drop-down select component driven by Backed Enum
                 Select::make('status')
+                    ->label(__('ticketResource.fields.status'))
                     ->options(TicketStatus::class)
-                    ->native(false) // Renders beautiful Tailwind select instead of raw browser HTML
+                    ->native(false)
                     ->required(),
 
-                // Informational text-only placeholder, hidden if not answered yet
                 Placeholder::make('answered_at')
-                    ->label('Automated Response Time')
+                    ->label(__('ticketResource.fields.answered_at'))
                     ->content(fn ($record) => $record?->answered_at ? $record->answered_at->format('Y-m-d H:i:s') : '-')
                     ->visible(fn ($record) => $record?->answered_at !== null),
 
                 Placeholder::make('customer_name')
-                    ->label('Customer Name')
+                    ->label(__('ticketResource.fields.customer_name'))
                     ->content(fn ($record) => $record?->customer?->name),
 
                 Placeholder::make('customer_email')
-                    ->label('Customer Email')
+                    ->label(__('ticketResource.fields.customer_email'))
                     ->content(fn ($record) => $record?->customer?->email),
 
                 Placeholder::make('subject')
-                    ->label('Subject')
+                    ->label(__('ticketResource.fields.subject'))
                     ->content(fn ($record) => $record?->subject),
 
                 Placeholder::make('text')
-                    ->label('Message Content')
+                    ->label(__('ticketResource.fields.text'))
                     ->content(fn ($record) => $record?->text),
 
                 SpatieMediaLibraryFileUpload::make('attachments')
+                    ->label(__('ticketResource.fields.attachments'))
                     ->collection('attachments')
                     ->multiple()
                     ->downloadable()

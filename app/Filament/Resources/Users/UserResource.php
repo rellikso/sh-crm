@@ -18,10 +18,22 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    // Меняем иконку на подходящую по смыслу для пользователей
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static string|null|\UnitEnum $navigationGroup = 'Settings';
+    public static function getModelLabel(): string
+    {
+        return __('userResource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('userResource.plural_model_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('userResource.navigation_group');
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -35,9 +47,7 @@ class UserResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array

@@ -13,25 +13,29 @@ class UserForm
     {
         return $schema
             ->components([
-                Section::make('User Account Details')
+                Section::make(__('user.sections.account_details'))
                     ->schema([
                         TextInput::make('name')
+                            ->label(__('user.fields.name'))
                             ->required()
                             ->maxLength(255),
 
                         TextInput::make('email')
+                            ->label(__('user.fields.email'))
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
 
                         TextInput::make('password')
+                            ->label(__('user.fields.password'))
                             ->password()
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $context): bool => $context === 'create')
                             ->maxLength(255),
 
                         Select::make('roles')
+                            ->label(__('user.fields.roles'))
                             ->relationship('roles', 'name')
                             ->multiple()
                             ->preload()

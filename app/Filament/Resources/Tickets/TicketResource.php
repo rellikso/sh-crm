@@ -20,7 +20,20 @@ class TicketResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTicket;
 
-    protected static string|null|\UnitEnum $navigationGroup = 'Support';
+    public static function getModelLabel(): string
+    {
+        return __('ticketResource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ticketResource.plural_model_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ticketResource.navigation_group');
+    }
 
     public static function form(Schema $schema): Schema
     {
