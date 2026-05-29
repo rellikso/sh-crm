@@ -55,36 +55,152 @@ Once all container indicators resolve to a `healthy` status via `docker compose 
 ## 2. Test & Mock Data
 
 ### Database Ingestion & Seeding
-To migrate the database schema and populate required application roles alongside a default administrator account, run the following commands inside the container:
-
+To migrate the database schema, construct Spatie roles/permissions mapping, and seed administrative entities, execute:
 ```bash
-docker compose exec sh-web php artisan migrate
-docker compose exec sh-web php artisan db:seed
+docker compose exec sh-web php artisan migrate --seed
 ```
 
-### Initial Administrative Credentials
-Once seeded, the Filament v5 administration panel can be accessed at `https://<env('APP_DOMAIN')>/admin` using the following development credentials:
-* **Username:** `admin@crm.local`
-* **Password:** `secret123`
+### Seeded Structural Entities
+The default database state includes the following records:
+* **Roles & Permissions:** Creates a `manager` role authorized to view administrative spaces.
+* **Administrative Account:** Provisions a user inside Filament v5 accessible via:
+    * **URL:** `https://<env('APP_DOMAIN')>/admin`
+    * **Username:** `admin@<env('APP_DOMAIN')>`
+    * **Password:** `secret123`
+
+### Generating Bulk Mock Records via Factories
+To quickly seed the system with realistic customer metrics and ticket volume for performance evaluation, run the factory sequences via Artisan Tinker:
+```bash
+docker compose exec sh-web php artisan tinker
+```
+Inside the interactive shell, execute the model factory states:
+```php
+// Generates 10 customers, each containing 2-3 contextual support tickets
+\App\Models\Customer::factory()->count(10)->create()->each(function ($customer) {
+    \App\Models\Ticket::factory()->count(rand(2, 3))->create([
+        'customer_id' => $customer->id
+    ]);
+});
+```
 
 ---
 
 ## 3. API Documentation & Integration Examples
 
-The application includes an interactive Swagger UI dashboard containing the OpenAPI specification for all client-facing endpoints (used by external iframe widgets and internal integrations).
+The architecture provides an interactive Swagger UI interface tracking the OpenAPI specifications for downstream clients.
+* **Interactive Dashboard:** `https://<env('APP_DOMAIN')>/api/documentation/v1`
+* **Specification Compilation:** If schemas or controllers are modified, re-generate files via:
+  ```bash
+  docker compose exec sh-web php artisan l5-swagger:generate
+  ```
 
-### Accessing the Dashboard Locally
-Once the containers are healthy, the interactive documentation is available directly at:
-* **Dashboard URL:** `https://<env('APP_DOMAIN')>/api/documentation`
+### Direct Integration Snippets (The 2 Core Endpoints)
 
-### Regenerating Specs After Code Changes
-When you add new endpoints or update API attributes in Controllers/FormRequests, recompile the static JSON schema contract inside the application container:
+#### 1. Submit a Support Ticket (`POST /api/v1/tickets`)
+Processes public payload data, initializes unique customer mapping on identity match, stores attachments, and applies strict 24-hour frequency rate limiting per user identity.
+
+* **Example Request (cURL Multipart Form Data):**
 ```bash
-docker compose exec sh-web php artisan l5-swagger:generate
+curl -X POST https://<env('APP_DOMAIN')>/api/v1/tickets \
+  -H "Accept: application/json" \
+  -H "Accept-Language: ru" \
+  -F "name=Alex Oskiller" \
+  -F "email=oskiller@example.com" \
+  -F "phone=+77012345678" \
+  -F "subject=Integration Error" \
+  -F "message=The reactive iframe layout collapses on low-res frames." \
+  -F "attachments[]=@/path/to/screenshot.png"
+```
+
+* **Successful Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Заявка успешно зарегистрирована.",
+  "data": {
+    "ticket_id": 999
+  }
+}
+```
+
+* **Rate Limited Error Response (422 Unprocessable Entity):**
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "ticket": [
+      "Заявку можно отправить лишь раз в 24 часа."
+    ]
+  }
+}
+```
+
+#### 2. Fetch Anonymous Telemetry & Statistics (`GET /api/v1/tickets/statistics`)
+A public endpoint used by embeddable frames to display layout widgets showing processing efficiency across time slices.
+
+* **Example Request (cURL):**
+```bash
+curl -X GET https://<env('APP_DOMAIN')>/api/v1/tickets/statistics \
+  -H "Accept: application/json"
+```
+
+* **Successful Response (200 OK):**
+```json
+{
+  "success": true,
+  "metrics": {
+    "day": {
+      "total_tickets": 12,
+      "new": 4,
+      "in_progress": 5,
+      "processed": 3
+    },
+    "week": {
+      "total_tickets": 84,
+      "new": 10,
+      "in_progress": 24,
+      "processed": 50
+    },
+    "month": {
+      "total_tickets": 320,
+      "new": 15,
+      "in_progress": 45,
+      "processed": 260
+    }
+  }
+}
 ```
 
 ---
 
 ## 4. Widget Integration (Iframe Setup)
 
-*(To be completed: HTML copy-paste code snippets for cross-origin embedding, CORS policy parameters, and security headers configuration for integration on third-party sites).*
+To embed the reactive, cross-origin feedback widget workspace into any external third-party ecosystem, inject the following HTML placeholder layout into the target view layer:
+
+```html
+<iframe 
+    src="https://<env('APP_DOMAIN')>/widget?lang=ru" 
+    style="width: 100%; border: none; min-height: 550px; overflow: hidden; background: transparent;" 
+    scrolling="no" 
+    loading="lazy"
+    allow="clipboard-write">
+</iframe>
+```
+
+### Localization Dynamic Switching
+The workspace reads the initial language configuration directly from the target frame query payload:
+* `lang=ru` — Russian core template matching localization standard maps.
+* `lang=en` — English language system variables.
+* `lang=uk` — Ukrainian translation matrices.
+* `lang=kk` — Kazakh localized layouts.
+
+### Cross-Origin Security & Headers Parameters
+To ensure proper operation across different origins inside the iframe ecosystem, the server configuration uses specific HTTP security headers:
+
+1. **X-Frame-Options Bypassing:** For the dynamic route `/widget` (and `/feedback-widget`), the traditional `X-Frame-Options: SAMEORIGIN` safety directive is explicitly removed by the application middleware layer to permit standard cross-origin rendering.
+2. **Content Security Policy (CSP):** The application relies on modern `frame-ancestors` controls. To restrict embed interactions exclusively to authorized partner nodes, adjust the environment headers to match targeted domain scopes:
+   ```text
+   Content-Security-Policy: frame-ancestors 'self' https://*.trusted-partner.com;
+   ```
+   *Note: For completely anonymous universal integrations, the directive can be configured with a generic wildcard scope (`frame-ancestors 'self' *;`).*
+3. **Cross-Origin Resource Sharing (CORS):** The asynchronous API endpoint layer (`POST /api/v1/tickets`) strictly references the configured application domain mappings inside `config/cors.php`, handling cross-site AJAX requests safely with proper preflight configurations.
