@@ -168,7 +168,6 @@ php artisan l5-swagger:generate --all
 php artisan l5-swagger:generate v1
 php artisan l5-swagger:generate v2
 ```
-
 ---
 
 ## 6. Database Normalization & Customer Identity Guarantee
@@ -223,3 +222,14 @@ The system implements a compromise architecture. The JavaScript client fetches s
 **Benefits:**
 * **Asymmetric Scaling:** Allows the read query layer to be easily refactored to read from a high-performance Redis cache snapshot or a de-normalized tracking table in the future without modifying a single line of ticket processing or attachment code.
 * **Controller Simplification:** The `TicketController` acts as a pure, thin router orchestrating incoming HTTP/AJAX requests directly to their respective single-purpose Command or Query executors, reducing boilerplate and isolating integration testing vectors.
+
+---
+## 10. Seamless Cross-Origin Localization Strategy
+
+**Problem:** Embedding an iframe into external client websites makes it hard to predict the target user's preferred language. Hardcoding strings directly inside the template makes the layout rigid, while standard session-based or cookie-based locale switching fails due to restrictive third-party cookie blocking policies implemented by modern web browsers.
+
+**Solution:** The system employs a stateless, dual-layer localization strategy driven by runtime context detection and a strict application-level whitelist.
+
+1. **Contextual Middleware Optimization:** A unified `SetLocale` middleware intercepts all integration endpoints. For structural iframe renders, it extracts the requested language from the query string (`?lang=uk`). For subsequent asynchronous background tasks, it pulls context directly from the client's HTTP `Accept-Language` header.
+2. **Strict White-list Enforcement:** To prevent runtime exceptions caused by unsupported languages, the middleware evaluates inputs directly against the central application registry using a strict validation loop: `in_array($locale, config('app.available_locales'))`.
+3. **Decoupled Translations:** All user-facing components, validation logic, and server side error messages utilize native Laravel dictionary interpolation mapping directly to isolated static asset layers (`lang/<locale>/tickets.php`), ensuring complete contextual alignment without overhead.

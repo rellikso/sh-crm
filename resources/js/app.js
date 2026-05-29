@@ -3,12 +3,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!metaTag) return;
 
     const API_BASE = metaTag.getAttribute('content');
+    // Read the current locale set by Blade from the HTML tag
+    const currentLocale = document.documentElement.getAttribute('lang') || 'en';
     const periods = ['day', 'week', 'month'];
+
+    // Helper for shared fetch headers
+    const getRequestHeaders = () => ({
+        'Accept': 'application/json',
+        'Accept-Language': currentLocale
+    });
 
     const fetchStats = async () => {
         try {
             const response = await fetch(`${API_BASE}/tickets/statistics`, {
-                headers: { 'Accept': 'application/json' }
+                headers: getRequestHeaders()
             });
             const result = await response.json();
 
@@ -37,19 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('submit-btn');
             const msg = document.getElementById('form-message');
 
+            const originalBtnText = btn.textContent;
             btn.disabled = true;
-            msg.textContent = 'Sending...';
+            btn.textContent = btn.getAttribute('data-sending-text');
+            msg.textContent = '';
 
             try {
                 const response = await fetch(`${API_BASE}/tickets`, {
                     method: 'POST',
-                    headers: { 'Accept': 'application/json' },
+                    headers: getRequestHeaders(), // Automatically injects target locale header
                     body: new FormData(form)
                 });
 
                 if (response.status === 201) {
                     msg.className = 'text-green-600 font-semibold mt-2';
-                    msg.textContent = 'Ticket submitted successfully!';
+                    msg.textContent = msg.getAttribute('data-success-text');
                     form.reset();
                     await fetchStats();
                 } else {
@@ -61,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 msg.textContent = error.message || 'Something went wrong.';
             } finally {
                 btn.disabled = false;
+                btn.textContent = originalBtnText;
             }
         });
     }
