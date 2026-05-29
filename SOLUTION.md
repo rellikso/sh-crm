@@ -210,4 +210,16 @@ php artisan l5-swagger:generate v2
 **Chosen Solution: Re-fetch on Action (Event-Driven Polling)**
 The system implements a compromise architecture. The JavaScript client fetches statistics automatically *only* upon the initial DOM load, and specifically triggers a forced background re-fetch (`GET /api/v1/tickets/statistics`) immediately following a successful `201 Created` form submission.
 * **Why:** This ensures absolute data consistency right when the user's attention is focused on the interface, without wasting server resources on WebSockets or idle polling.
-* 
+
+## 9. Tactical CQRS Implementation (Command Query Responsibility Segregation)
+
+**Problem:** Standard Laravel architecture often blurs the line between read-heavy telemetry operations and write-heavy data mutations within a unified "Action" or service layer. As the external widget scales, read requests (fetching rolling 24h/7d/30d statistics) and write requests (ticket ingestion with file uploads) have fundamentally different scaling, performance, and transactional requirements.
+
+**Solution:** The application implements a tactical **CQRS pattern** within the `App\Tickets` domain namespace, completely decoupling data modification from data retrieval.
+
+1. **Commands (Write Model):** `App\Commands\CreateTicketCommand` is responsible solely for system state alteration. It accepts validated arrays hydrated via the `TicketData` DTO, handles multi-part file persistence, and returns only the newly assigned primary identifier (`ID`). It produces side effects but does not return domain representations.
+2. **Queries (Read Model):** `App\Queries\GetTicketStatisticsQuery` is a strictly side-effect-free operation optimized for rapid, read-only data aggregation. It runs lightweight analytical queries across specific rolling time windows using Eloquent metadata.
+
+**Benefits:**
+* **Asymmetric Scaling:** Allows the read query layer to be easily refactored to read from a high-performance Redis cache snapshot or a de-normalized tracking table in the future without modifying a single line of ticket processing or attachment code.
+* **Controller Simplification:** The `TicketController` acts as a pure, thin router orchestrating incoming HTTP/AJAX requests directly to their respective single-purpose Command or Query executors, reducing boilerplate and isolating integration testing vectors.

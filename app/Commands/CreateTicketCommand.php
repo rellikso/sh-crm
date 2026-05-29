@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Actions;
+namespace App\Commands;
 
 use App\DTO\TicketData;
 use App\Models\Customer;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\DB;
 
-class CreateTicketAction
+class CreateTicketCommand
 {
     /**
      * Execute the atomic ticket ingestion pipeline.

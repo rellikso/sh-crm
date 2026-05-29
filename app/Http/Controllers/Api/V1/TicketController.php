@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\CreateTicketAction;
-use App\Actions\GetTicketStatisticsAction;
+use App\Commands\CreateTicketCommand;
+use App\Queries\GetTicketStatisticsQuery;
 use App\DTO\TicketData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SubmitTicketRequest;
@@ -77,10 +77,10 @@ class TicketController extends Controller
             )
         ]
     )]
-    public function store(SubmitTicketRequest $request, CreateTicketAction $action): TicketResource
+    public function store(SubmitTicketRequest $request, CreateTicketCommand $command): TicketResource
     {
-        // Hydrate data container and offload processing execution to the domain layer
-        $ticket = $action->execute(TicketData::fromRequest($request));
+        // Hydrate data container and offload writing/processing execution to the Command layer
+        $ticket = $command->execute(TicketData::fromRequest($request));
 
         // Returns formatted payload wrapped via API JsonResource
         return new TicketResource($ticket);
@@ -109,8 +109,9 @@ class TicketController extends Controller
             )
         ]
     )]
-    public function statistics(GetTicketStatisticsAction $action): TicketStatisticsResource
+    public function statistics(GetTicketStatisticsQuery $query): TicketStatisticsResource
     {
-        return new TicketStatisticsResource($action->execute());
+        // Execute the read-only query mapping directly to the response resource
+        return new TicketStatisticsResource($query->execute());
     }
 }

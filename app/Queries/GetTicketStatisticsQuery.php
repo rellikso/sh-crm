@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Actions;
+namespace App\Queries;
 
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use Carbon\CarbonInterface;
 
-class GetTicketStatisticsAction
+class GetTicketStatisticsQuery
 {
     /**
      * Execute the query logic to aggregate ticket statistics.
